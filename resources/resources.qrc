@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/SpeedDisplay.qml</file>
+        <file>qml/CharacterView.qml</file>
+        <file>qml/SettingsDialog.qml</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>characters/relaxed.gif</file>
+        <file>characters/normal.gif</file>
+        <file>characters/alert.gif</file>
+        <file>characters/warning.gif</file>
+        <file>characters/scared.gif</file>
+    </qresource>
+</RCC>

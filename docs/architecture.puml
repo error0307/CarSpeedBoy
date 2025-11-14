@@ -1,0 +1,211 @@
+@startuml CarSpeedBoy_Architecture
+
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+
+' ========================================
+' Automotive Grade Linux Platform Layer
+' ========================================
+package "Automotive Grade Linux (AGL)" {
+    
+    ' ========================================
+    ' Hardware Abstraction Layer
+    ' ========================================
+    package "Hardware Abstraction Layer" {
+        component [CAN Bus Driver] as CAN #AliceBlue
+        component [OBD-II Interface] as OBD #AliceBlue
+        component [Vehicle Sensors] as Sensors #White
+        
+        note right of CAN
+          **AGL Provided**
+          Linux SocketCAN driver
+        end note
+    }
+    
+    ' ========================================
+    ' AGL Framework Services
+    ' ========================================
+    package "AGL Framework Services" {
+        component [Application Framework Binder] as AFB #AliceBlue
+        component [CAN Signaling Service] as CANSignal #AliceBlue
+        component [Vehicle Signal Specification (VSS)] as VSS #AliceBlue
+        component [Wayland Compositor] as Wayland #AliceBlue
+        component [Window Manager] as WM #AliceBlue
+        
+        note right of AFB
+          **AGL Provided**
+          - AFB Framework (afb-daemon)
+          - WebSocket/REST API
+          - Security framework
+        end note
+        
+        note right of CANSignal
+          **AGL Provided**
+          - low-can binding
+          - CAN message routing
+        end note
+    }
+    
+    ' ========================================
+    ' CarSpeedBoy Application Layer
+    ' ========================================
+    package "CarSpeedBoy Application" {
+        
+        ' Main Application Components
+        component [Application Controller] as AppCtrl #LightBlue
+        
+        ' Data Acquisition Layer
+        package "Data Acquisition Layer" {
+            component [Vehicle Data Manager] as DataMgr #LightGreen
+            component [Configuration Manager] as ConfigMgr #LightGreen
+            
+            note right of DataMgr
+              **要実装**
+              - VSS API呼び出し（AFB経由）
+              - Vehicle.Speedの購読
+              - データキャッシング
+              - エラーハンドリング
+              
+              **プロトコル非依存**
+              VSSにより抽象化済み
+            end note
+        }
+        
+        ' Business Logic Layer
+        package "Business Logic Layer" {
+            component [Speed Monitor] as SpeedMon #LightYellow
+            component [Expression State Machine] as StateMachine #LightYellow
+            component [Data Logger] as Logger #LightYellow
+            component [Alert Manager] as AlertMgr #LightYellow
+            
+            note right of SpeedMon
+              **要実装**
+              全てのビジネスロジック
+              はアプリ側で実装
+            end note
+        }
+        
+        ' Presentation Layer
+        package "Presentation Layer (Qt/GTK)" {
+            component [GUI Main Window] as MainWin #LightCoral
+            component [Character Animation Engine] as AnimEngine #LightCoral
+            component [Speed Display Widget] as SpeedWidget #LightCoral
+            component [Settings UI] as SettingsUI #LightCoral
+            
+            note right of MainWin
+              **要実装**
+              - Qt/GTKのUI実装
+              - Waylandクライアント
+              - アニメーション制御
+              
+              **AGL提供可能**
+              - Qt toolkit (ビルド済み)
+              - Wayland protocol libs
+            end note
+        }
+        
+        ' Data Models
+        database "Data & Configuration" {
+            storage [Speed Thresholds Config] as ThresholdDB
+            storage [Character Assets] as CharAssets
+            storage [Log Files] as LogDB
+        }
+    }
+}
+
+' ========================================
+' External Systems
+' ========================================
+cloud "External Systems" {
+    component [Cloud Analytics] as Cloud
+    component [Mobile App Sync] as Mobile
+}
+
+' ========================================
+' Relationships - Hardware to HAL
+' ========================================
+Sensors -down-> CAN : CAN frames
+Sensors -down-> OBD : OBD-II data
+
+' ========================================
+' Relationships - HAL to AGL Services
+' ========================================
+CAN -down-> CANSignal : Raw CAN data
+OBD -down-> CANSignal : Vehicle data
+CANSignal -down-> VSS : Normalized signals
+CANSignal -down-> AFB : Service binding
+
+' ========================================
+' Relationships - AGL Services to App
+' ========================================
+AFB -down-> DataMgr : VSS API access
+Wayland -down-> MainWin : Display surface
+WM -down-> MainWin : Window control
+
+' ========================================
+' Relationships - Data Acquisition Layer
+' ========================================
+AFB -down-> DataMgr : VSS API access
+ConfigMgr -down-> ThresholdDB : Read/Write
+DataMgr -down-> AppCtrl : Speed data
+
+' ========================================
+' Relationships - Business Logic
+' ========================================
+AppCtrl -down-> SpeedMon : Speed updates
+SpeedMon -down-> StateMachine : Speed state
+StateMachine -down-> ThresholdDB : Read thresholds
+StateMachine -down-> AlertMgr : State change
+SpeedMon -down-> Logger : Log data
+Logger -down-> LogDB : Write
+
+' ========================================
+' Relationships - Presentation Layer
+' ========================================
+AppCtrl -down-> MainWin : UI control
+MainWin -down-> AnimEngine : Render
+MainWin -down-> SpeedWidget : Display speed
+MainWin -down-> SettingsUI : User settings
+StateMachine -down-> AnimEngine : Expression state
+AnimEngine -down-> CharAssets : Load assets
+
+' ========================================
+' Relationships - External Integration
+' ========================================
+Logger -right-> Cloud : Upload logs\n(future)
+ConfigMgr -right-> Mobile : Sync settings\n(future)
+
+' ========================================
+' Notes
+' ========================================
+note right of AppCtrl
+  **Application Controller**
+  - Main event loop
+  - Component coordination
+  - Lifecycle management
+end note
+
+note right of StateMachine
+  **Expression States**
+  - 0-20 km/h: Relaxed
+  - 21-60 km/h: Normal
+  - 61-100 km/h: Alert
+  - 101-120 km/h: Warning
+  - 121+ km/h: Scared
+end note
+
+note bottom of VSS
+  **VSS (Vehicle Signal Specification)**
+  GENIVI standard for vehicle data
+  normalization and abstraction
+end note
+
+note bottom of AFB
+  **Application Framework Binder**
+  AGL's microservice framework
+  for secure app-to-service communication
+end note
+
+@enduml

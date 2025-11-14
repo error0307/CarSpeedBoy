@@ -1,0 +1,39 @@
+{
+  "afb": {
+    "url": "ws://localhost:1234/api",
+    "token": "",
+    "reconnect_interval_ms": 1000,
+    "max_retries": 5
+  },
+  "vss": {
+    "signals": [
+      "Vehicle.Speed"
+    ],
+    "update_rate_hz": 10
+  },
+  "speed_thresholds": {
+    "relaxed_max": 20,
+    "normal_max": 60,
+    "alert_max": 100,
+    "warning_max": 120
+  },
+  "display": {
+    "units": "km/h",
+    "theme": "dark",
+    "language": "en",
+    "show_speed_number": true,
+    "fullscreen": false
+  },
+  "character": {
+    "selected": "default_boy",
+    "animation_speed": 1.0,
+    "enable_transitions": true
+  },
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "log_dir": "/var/log/carspeedboy",
+    "max_file_size_mb": 10,
+    "max_files": 5
+  }
+}

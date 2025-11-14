@@ -1,0 +1,73 @@
+# Build directories
+build/
+build-*/
+out/
+*.o
+*.so
+*.a
+*.wgt
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# Qt Creator
+*.user
+*.autosave
+*.qmlc
+*.jsc
+.qmake.stash
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencies
+node_modules/
+.npm/
+
+# Logs
+*.log
+logs/
+*.tlog
+
+# Test coverage
+*.gcov
+*.gcda
+*.gcno
+coverage/
+htmlcov/
+
+# Yocto build
+tmp/
+sstate-cache/
+downloads/
+buildhistory/
+
+# Package files
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+
+# Credentials and secrets
+*.pem
+*.key
+secrets.json
+.env
+
+# Documentation build
+docs/_build/
+docs/.doctrees/

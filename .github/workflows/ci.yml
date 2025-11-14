@@ -1,0 +1,84 @@
+name: CarSpeedBoy CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          qt5-default \
+          qtdeclarative5-dev \
+          qtwebsockets5-dev \
+          nlohmann-json3-dev \
+          clang-format \
+          clang-tidy
+    
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+    
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+    
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+    
+    - name: Check code format
+      run: |
+        find src include -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run --Werror
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install clang-tidy
+      run: sudo apt-get update && sudo apt-get install -y clang-tidy
+    
+    - name: Run clang-tidy
+      run: |
+        cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        clang-tidy src/*.cpp include/**/*.h -p build
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install wgtpkg-pack
+      run: |
+        # Install AGL widget packaging tools
+        # TODO: Add installation steps
+        echo "Widget packaging step"
+    
+    - name: Build widget package
+      run: |
+        mkdir -p widget
+        # TODO: Copy built files to widget directory
+        # wgtpkg-pack -o CarSpeedBoy.wgt widget/
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: carspeedboy-widget
+        path: CarSpeedBoy.wgt
