@@ -1,15 +1,8 @@
 <RCC>
-    <qresource prefix="/">
-        <file>qml/main.qml</file>
-        <file>qml/SpeedDisplay.qml</file>
-        <file>qml/CharacterView.qml</file>
-        <file>qml/SettingsDialog.qml</file>
-    </qresource>
-    <qresource prefix="/images">
-        <file>characters/relaxed.gif</file>
-        <file>characters/normal.gif</file>
-        <file>characters/alert.gif</file>
-        <file>characters/warning.gif</file>
-        <file>characters/scared.gif</file>
+    <qresource prefix="/qml">
+        <file alias="main.qml">../qml/main.qml</file>
+        <file alias="SpeedDisplay.qml">../qml/SpeedDisplay.qml</file>
+        <file alias="CharacterView.qml">../qml/CharacterView.qml</file>
+        <file alias="SettingsDialog.qml">../qml/SettingsDialog.qml</file>
     </qresource>
 </RCC>

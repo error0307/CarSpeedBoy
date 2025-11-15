@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QMap>
-#include "expression_state_machine.h"
+#include "business_logic/expression_state_machine.h"
 
 /**
  * @brief Manages character animations based on expression state

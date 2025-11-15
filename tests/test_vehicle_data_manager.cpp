@@ -38,8 +38,7 @@ void TestVehicleDataManager::cleanupTestCase() {
 }
 
 void TestVehicleDataManager::init() {
-    // Use localhost URL (won't actually connect in test environment)
-    data_manager_ = new VehicleDataManager("ws://localhost:1234/api");
+    data_manager_ = new VehicleDataManager();
 }
 
 void TestVehicleDataManager::cleanup() {
@@ -49,57 +48,53 @@ void TestVehicleDataManager::cleanup() {
 
 void TestVehicleDataManager::testInitialState() {
     QVERIFY(data_manager_ != nullptr);
-    // VehicleDataManager starts disconnected
+    QCOMPARE(data_manager_->getCurrentSpeed(), 0.0);
 }
 
 void TestVehicleDataManager::testConnectionAttempt() {
-    QSignalSpy connectedSpy(data_manager_, &VehicleDataManager::connected);
+    QSignalSpy connectedSpy(data_manager_, &VehicleDataManager::connectionEstablished);
     QSignalSpy errorSpy(data_manager_, &VehicleDataManager::errorOccurred);
     
-    data_manager_->connectToAFB();
+    // Attempt to connect (will fail without AFB server)
+    data_manager_->initialize("ws://localhost:1234/api", "");
     
     // In test environment without AFB server, connection will fail
-    // We're testing that the attempt is made
     QTest::qWait(100);
     
     // Either connected or error should occur
-    // Since no real server exists, likely errorOccurred
-    QVERIFY(connectedSpy.count() >= 0);
+    QVERIFY(connectedSpy.count() >= 0 || errorSpy.count() >= 0);
 }
 
 void TestVehicleDataManager::testDisconnection() {
-    data_manager_->connectToAFB();
+    data_manager_->initialize("ws://localhost:1234/api", "");
     QTest::qWait(50);
     
-    QSignalSpy disconnectedSpy(data_manager_, &VehicleDataManager::disconnected);
+    QSignalSpy disconnectedSpy(data_manager_, &VehicleDataManager::connectionLost);
     
-    data_manager_->disconnect();
+    data_manager_->shutdown();
     
-    // Disconnect should emit signal or complete cleanly
+    // Shutdown should complete cleanly
     QTest::qWait(50);
+    QVERIFY(true);
 }
 
 void TestVehicleDataManager::testSpeedDataValidation() {
-    // Test valid speed range (0-300 km/h)
-    // This would be tested with mock WebSocket data in integration tests
+    // Test that getCurrentSpeed works
+    QCOMPARE(data_manager_->getCurrentSpeed(), 0.0);
     
-    QSignalSpy speedSpy(data_manager_, &VehicleDataManager::speedUpdated);
-    
-    // Simulate speed update (normally called from WebSocket handler)
-    // In real implementation, this would come from handleSpeedUpdate()
-    
-    // Valid speed values should be accepted
-    QVERIFY(true); // Placeholder - actual validation in handleSpeedUpdate()
+    // Test that isDataValid returns false initially
+    QVERIFY(!data_manager_->isDataValid());
 }
 
 void TestVehicleDataManager::testInvalidSpeedData() {
     QSignalSpy speedSpy(data_manager_, &VehicleDataManager::speedUpdated);
     
-    // Invalid speeds (negative, too high) should be rejected
-    // This is validated in handleSpeedUpdate() method
+    // Invalid speeds would be rejected in handleSpeedUpdate() method
+    // This test verifies the signal mechanism works
+    QVERIFY(speedSpy.isValid());
     
-    // Test that invalid data doesn't emit speedUpdated signal
-    QVERIFY(true); // Placeholder - needs mock WebSocket
+    // Initially no speed updates
+    QCOMPARE(speedSpy.count(), 0);
 }
 
 void TestVehicleDataManager::testSignalEmission() {

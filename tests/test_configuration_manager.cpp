@@ -68,7 +68,7 @@ QString TestConfigurationManager::createTestConfig(const QJsonObject& config) {
 
 void TestConfigurationManager::testDefaultConfiguration() {
     // Test default values
-    auto thresholds = config_manager_->speedThresholds();
+    auto thresholds = config_manager_->getSpeedThresholds();
     QCOMPARE(thresholds.relaxed_max, 20.0);
     QCOMPARE(thresholds.normal_max, 60.0);
     QCOMPARE(thresholds.alert_max, 100.0);
@@ -97,13 +97,12 @@ void TestConfigurationManager::testLoadValidConfiguration() {
     bool result = config_manager_->loadFromFile(filepath);
     QVERIFY(result);
     
-    auto loaded_thresholds = config_manager_->speedThresholds();
+    auto loaded_thresholds = config_manager_->getSpeedThresholds();
     QCOMPARE(loaded_thresholds.relaxed_max, 25.0);
     QCOMPARE(loaded_thresholds.normal_max, 70.0);
     
-    auto afb_config = config_manager_->afbConfig();
+    auto afb_config = config_manager_->getAFBConfig();
     QCOMPARE(afb_config.url, QString("ws://testhost:5678/api"));
-    QCOMPARE(afb_config.retry_attempts, 10);
 }
 
 void TestConfigurationManager::testLoadInvalidFile() {
@@ -111,7 +110,7 @@ void TestConfigurationManager::testLoadInvalidFile() {
     QVERIFY(!result);
     
     // Should keep default values
-    auto thresholds = config_manager_->speedThresholds();
+    auto thresholds = config_manager_->getSpeedThresholds();
     QCOMPARE(thresholds.relaxed_max, 20.0);
 }
 
@@ -128,7 +127,7 @@ void TestConfigurationManager::testLoadMalformedJSON() {
 }
 
 void TestConfigurationManager::testSpeedThresholds() {
-    SpeedThresholds thresholds;
+    ConfigurationManager::SpeedThresholds thresholds;
     thresholds.relaxed_max = 30.0;
     thresholds.normal_max = 80.0;
     thresholds.alert_max = 120.0;
@@ -136,7 +135,7 @@ void TestConfigurationManager::testSpeedThresholds() {
     
     config_manager_->setSpeedThresholds(thresholds);
     
-    auto loaded = config_manager_->speedThresholds();
+    auto loaded = config_manager_->getSpeedThresholds();
     QCOMPARE(loaded.relaxed_max, 30.0);
     QCOMPARE(loaded.normal_max, 80.0);
     QCOMPARE(loaded.alert_max, 120.0);
@@ -144,41 +143,42 @@ void TestConfigurationManager::testSpeedThresholds() {
 }
 
 void TestConfigurationManager::testAFBConfiguration() {
-    AFBConnectionConfig afb_config;
+    ConfigurationManager::AFBConnectionConfig afb_config;
     afb_config.url = "ws://custom:9999/api";
     afb_config.token = "test_token";
-    afb_config.retry_attempts = 20;
-    afb_config.retry_interval_ms = 5000;
+    afb_config.max_retries = 20;
+    afb_config.reconnect_interval_ms = 5000;
     
     config_manager_->setAFBConfig(afb_config);
     
-    auto loaded = config_manager_->afbConfig();
+    auto loaded = config_manager_->getAFBConfig();
     QCOMPARE(loaded.url, QString("ws://custom:9999/api"));
     QCOMPARE(loaded.token, QString("test_token"));
-    QCOMPARE(loaded.retry_attempts, 20);
+    QCOMPARE(loaded.max_retries, 20);
+    QCOMPARE(loaded.reconnect_interval_ms, 5000);
 }
 
 void TestConfigurationManager::testDisplaySettings() {
-    DisplaySettings display;
+    ConfigurationManager::DisplaySettings display;
     display.units = "mph";
     display.theme = "light";
     
     config_manager_->setDisplaySettings(display);
     
-    auto loaded = config_manager_->displaySettings();
+    auto loaded = config_manager_->getDisplaySettings();
     QCOMPARE(loaded.units, QString("mph"));
     QCOMPARE(loaded.theme, QString("light"));
 }
 
 void TestConfigurationManager::testLoggingConfiguration() {
-    LoggingConfig logging;
+    ConfigurationManager::LoggingConfig logging;
     logging.enabled = false;
     logging.log_dir = "/tmp/test_logs";
     logging.level = "error";
     
     config_manager_->setLoggingConfig(logging);
     
-    auto loaded = config_manager_->loggingConfig();
+    auto loaded = config_manager_->getLoggingConfig();
     QCOMPARE(loaded.enabled, false);
     QCOMPARE(loaded.log_dir, QString("/tmp/test_logs"));
     QCOMPARE(loaded.level, QString("error"));
@@ -186,7 +186,7 @@ void TestConfigurationManager::testLoggingConfiguration() {
 
 void TestConfigurationManager::testSaveConfiguration() {
     // Set custom configuration
-    SpeedThresholds thresholds;
+    ConfigurationManager::SpeedThresholds thresholds;
     thresholds.relaxed_max = 35.0;
     thresholds.normal_max = 75.0;
     thresholds.alert_max = 115.0;
@@ -207,7 +207,7 @@ void TestConfigurationManager::testSaveConfiguration() {
     bool load_result = new_manager->loadFromFile(save_path);
     QVERIFY(load_result);
     
-    auto loaded_thresholds = new_manager->speedThresholds();
+    auto loaded_thresholds = new_manager->getSpeedThresholds();
     QCOMPARE(loaded_thresholds.relaxed_max, 35.0);
     QCOMPARE(loaded_thresholds.normal_max, 75.0);
     

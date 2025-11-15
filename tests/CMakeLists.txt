@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.16)
 # Enable testing
 enable_testing()
 
+# Enable Qt MOC
+set(CMAKE_AUTOMOC ON)
+
 # Find Qt5 Test module
 find_package(Qt5 REQUIRED COMPONENTS Test Core WebSockets)
 
@@ -32,18 +35,21 @@ endfunction()
 add_carspeedboy_test(test_expression_state_machine
     test_expression_state_machine.cpp
     ${CMAKE_SOURCE_DIR}/src/business_logic/expression_state_machine.cpp
+    ${CMAKE_SOURCE_DIR}/include/business_logic/expression_state_machine.h
 )
 
 # Test: ConfigurationManager
 add_carspeedboy_test(test_configuration_manager
     test_configuration_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/data_acquisition/configuration_manager.cpp
+    ${CMAKE_SOURCE_DIR}/include/data_acquisition/configuration_manager.h
 )
 
 # Test: VehicleDataManager (with mocks)
 add_carspeedboy_test(test_vehicle_data_manager
     test_vehicle_data_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/data_acquisition/vehicle_data_manager.cpp
+    ${CMAKE_SOURCE_DIR}/include/data_acquisition/vehicle_data_manager.h
 )
 
 # Coverage report (optional)

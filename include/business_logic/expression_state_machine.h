@@ -47,3 +47,6 @@ private:
     double hysteresis_margin_ = 2.0;
     double last_speed_;
 };
+
+// Declare metatype for use in signals/slots
+Q_DECLARE_METATYPE(ExpressionState)

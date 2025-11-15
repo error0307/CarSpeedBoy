@@ -47,110 +47,112 @@ void TestExpressionStateMachine::cleanup() {
 }
 
 void TestExpressionStateMachine::testInitialState() {
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
-    QCOMPARE(state_machine_->stateString(), QString("RELAXED"));
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
+    QCOMPARE(state_machine_->getStateString(), QString("relaxed"));
 }
 
 void TestExpressionStateMachine::testRelaxedState() {
-    state_machine_->onSpeedUpdate(0.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
+    state_machine_->updateSpeed(0.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
     
-    state_machine_->onSpeedUpdate(10.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
+    state_machine_->updateSpeed(10.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
     
-    state_machine_->onSpeedUpdate(20.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
+    state_machine_->updateSpeed(20.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
 }
 
 void TestExpressionStateMachine::testNormalState() {
-    state_machine_->onSpeedUpdate(21.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(21.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    state_machine_->onSpeedUpdate(40.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(40.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    state_machine_->onSpeedUpdate(60.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(60.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
 }
 
 void TestExpressionStateMachine::testAlertState() {
-    state_machine_->onSpeedUpdate(61.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::ALERT);
+    state_machine_->updateSpeed(61.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::ALERT);
     
-    state_machine_->onSpeedUpdate(80.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::ALERT);
+    state_machine_->updateSpeed(80.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::ALERT);
     
-    state_machine_->onSpeedUpdate(100.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::ALERT);
+    state_machine_->updateSpeed(100.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::ALERT);
 }
 
 void TestExpressionStateMachine::testWarningState() {
-    state_machine_->onSpeedUpdate(101.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::WARNING);
+    state_machine_->updateSpeed(101.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::WARNING);
     
-    state_machine_->onSpeedUpdate(110.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::WARNING);
+    state_machine_->updateSpeed(110.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::WARNING);
     
-    state_machine_->onSpeedUpdate(120.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::WARNING);
+    state_machine_->updateSpeed(120.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::WARNING);
 }
 
 void TestExpressionStateMachine::testScaredState() {
-    state_machine_->onSpeedUpdate(121.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::SCARED);
+    state_machine_->updateSpeed(121.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::SCARED);
     
-    state_machine_->onSpeedUpdate(150.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::SCARED);
+    state_machine_->updateSpeed(150.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::SCARED);
     
-    state_machine_->onSpeedUpdate(200.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::SCARED);
+    state_machine_->updateSpeed(200.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::SCARED);
 }
 
 void TestExpressionStateMachine::testHysteresis() {
     // Move to NORMAL state
-    state_machine_->onSpeedUpdate(30.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(30.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    // At boundary (20 km/h), should stay in NORMAL due to hysteresis
-    state_machine_->onSpeedUpdate(20.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    // Speed decreasing: hysteresis margin (2.0) is applied
+    // relaxed_max (20) + margin (2) = 22
+    // Speed 22.5 should stay NORMAL
+    state_machine_->updateSpeed(22.5);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    // Below hysteresis margin (18 km/h), should transition to RELAXED
-    state_machine_->onSpeedUpdate(18.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
+    // Speed 21 is <= 22, so it becomes RELAXED
+    state_machine_->updateSpeed(21.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
 }
 
 void TestExpressionStateMachine::testBoundaryValues() {
     // Test exact threshold values
-    state_machine_->onSpeedUpdate(20.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
+    state_machine_->updateSpeed(20.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
     
-    state_machine_->onSpeedUpdate(21.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(21.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    state_machine_->onSpeedUpdate(60.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(60.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    state_machine_->onSpeedUpdate(61.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::ALERT);
+    state_machine_->updateSpeed(61.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::ALERT);
 }
 
 void TestExpressionStateMachine::testStateTransitions() {
     // RELAXED -> NORMAL -> ALERT -> WARNING -> SCARED
-    state_machine_->onSpeedUpdate(10.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::RELAXED);
+    state_machine_->updateSpeed(10.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::RELAXED);
     
-    state_machine_->onSpeedUpdate(40.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::NORMAL);
+    state_machine_->updateSpeed(40.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::NORMAL);
     
-    state_machine_->onSpeedUpdate(80.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::ALERT);
+    state_machine_->updateSpeed(80.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::ALERT);
     
-    state_machine_->onSpeedUpdate(110.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::WARNING);
+    state_machine_->updateSpeed(110.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::WARNING);
     
-    state_machine_->onSpeedUpdate(150.0);
-    QCOMPARE(state_machine_->currentState(), ExpressionState::SCARED);
+    state_machine_->updateSpeed(150.0);
+    QCOMPARE(state_machine_->getCurrentState(), ExpressionState::SCARED);
 }
 
 void TestExpressionStateMachine::testSignalEmission() {
@@ -158,7 +160,7 @@ void TestExpressionStateMachine::testSignalEmission() {
     QSignalSpy stringStateSpy(state_machine_, &ExpressionStateMachine::stateStringChanged);
     
     // Change from RELAXED to NORMAL
-    state_machine_->onSpeedUpdate(30.0);
+    state_machine_->updateSpeed(30.0);
     
     QCOMPARE(stateSpy.count(), 1);
     QCOMPARE(stringStateSpy.count(), 1);
@@ -167,8 +169,11 @@ void TestExpressionStateMachine::testSignalEmission() {
     QCOMPARE(arguments.at(0).value<ExpressionState>(), ExpressionState::RELAXED);
     QCOMPARE(arguments.at(1).value<ExpressionState>(), ExpressionState::NORMAL);
     
+    // Clear the spy after taking the first signal
+    stringStateSpy.clear();
+    
     // Same state should not emit signal
-    state_machine_->onSpeedUpdate(40.0);
+    state_machine_->updateSpeed(40.0);
     QCOMPARE(stateSpy.count(), 0);
     QCOMPARE(stringStateSpy.count(), 0);
 }

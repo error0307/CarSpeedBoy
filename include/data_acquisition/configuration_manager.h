@@ -64,7 +64,10 @@ public:
     void setCharacterSettings(const CharacterSettings& settings);
 
     AFBConnectionConfig getAFBConfig() const { return afb_config_; }
+    void setAFBConfig(const AFBConnectionConfig& config);
+    
     LoggingConfig getLoggingConfig() const { return logging_config_; }
+    void setLoggingConfig(const LoggingConfig& config);
 
     void resetToDefaults();
 
